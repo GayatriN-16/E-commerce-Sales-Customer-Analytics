@@ -1,0 +1,598 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>E-Commerce Analytics — Project Report</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    background: #f7f8fa;
+    color: #1f2328;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 40px auto 60px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #0f172a;
+    padding: 36px 40px 28px;
+    color: #f1f5f9;
+  }
+  .header .badge {
+    display: inline-block;
+    background: #3b82f6;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .header h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.3; }
+  .header p  { color: #94a3b8; margin-top: 8px; font-size: 13px; }
+  .header .meta {
+    display: flex; gap: 28px; margin-top: 22px; flex-wrap: wrap;
+  }
+  .header .meta span { font-size: 12px; color: #94a3b8; }
+  .header .meta strong { color: #e2e8f0; }
+
+  /* ── Body ── */
+  .body { padding: 36px 40px; }
+
+  /* ── Section ── */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .9px;
+    text-transform: uppercase;
+    color: #3b82f6;
+    margin: 36px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  /* ── KPI grid ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 4px;
+  }
+  .kpi-grid.col3 { grid-template-columns: repeat(3, 1fr); }
+  .kpi {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .kpi .val { font-size: 1.4rem; font-weight: 700; color: #1e293b; }
+  .kpi .lbl { font-size: 11px; color: #64748b; margin-top: 3px; }
+  .kpi .delta { font-size: 11px; margin-top: 5px; }
+  .pos { color: #10b981; } .neg { color: #ef4444; } .warn { color: #f59e0b; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+  th {
+    background: #f1f5f9;
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-green  { background:#dcfce7; color:#166534; }
+  .tag-blue   { background:#dbeafe; color:#1e40af; }
+  .tag-yellow { background:#fef9c3; color:#854d0e; }
+  .tag-red    { background:#fee2e2; color:#991b1b; }
+  .tag-purple { background:#ede9fe; color:#5b21b6; }
+
+  /* ── Bar charts (CSS-only) ── */
+  .bar-row { display:flex; align-items:center; gap:10px; margin:5px 0; font-size:13px; }
+  .bar-label { width:130px; text-align:right; color:#475569; flex-shrink:0; font-size:12px; }
+  .bar-track { flex:1; background:#f1f5f9; border-radius:4px; height:16px; overflow:hidden; }
+  .bar-fill  { height:100%; border-radius:4px; }
+  .bar-pct   { width:46px; text-align:right; font-weight:600; color:#1e293b; font-size:12px; }
+
+  /* ── Pipeline flow ── */
+  .pipeline {
+    display: flex; gap: 0; align-items: stretch;
+    border: 1px solid #e5e7eb; border-radius: 8px; overflow:hidden;
+    margin-top: 8px;
+  }
+  .pl-step {
+    flex: 1; padding: 14px 12px; text-align: center;
+    border-right: 1px solid #e5e7eb;
+    background: #f8fafc;
+  }
+  .pl-step:last-child { border-right: none; }
+  .pl-step .icon { font-size: 20px; display:block; margin-bottom: 5px; }
+  .pl-step .name { font-size: 12px; font-weight: 700; color: #1e293b; }
+  .pl-step .desc { font-size: 11px; color: #64748b; margin-top: 3px; }
+
+  /* ── Model table ── */
+  .best-row td { background: #f0fdf4 !important; font-weight: 600; }
+
+  /* ── Forecast table ── */
+  .forecast-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:6px;
+  }
+  .fc-card {
+    background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px;
+    padding:12px 14px; text-align:center;
+  }
+  .fc-card .month { font-size:12px; color:#64748b; }
+  .fc-card .amount { font-size:1.1rem; font-weight:700; color:#1e293b; margin-top:4px; }
+  .fc-card.peak { background:#eff6ff; border-color:#bfdbfe; }
+  .fc-card.peak .amount { color:#1d4ed8; }
+
+  /* ── Insight boxes ── */
+  .insight {
+    background:#eff6ff; border-left:4px solid #3b82f6;
+    border-radius:0 6px 6px 0; padding:10px 14px;
+    margin:8px 0; font-size:13px; color:#1e3a5f;
+  }
+  .warning {
+    background:#fffbeb; border-left:4px solid #f59e0b;
+    border-radius:0 6px 6px 0; padding:10px 14px;
+    margin:8px 0; font-size:13px; color:#78350f;
+  }
+
+  /* ── Two-col ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+
+  /* ── Cleaning steps ── */
+  .step-list { list-style:none; }
+  .step-list li {
+    display:flex; align-items:flex-start; gap:10px;
+    padding:8px 0; border-bottom:1px solid #f1f5f9; font-size:13px;
+  }
+  .step-list li:last-child { border-bottom:none; }
+  .step-dot {
+    width:20px; height:20px; border-radius:50%;
+    background:#3b82f6; color:#fff; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;
+  }
+  .step-list .rows { margin-left:auto; font-weight:600; color:#64748b; font-size:12px; white-space:nowrap; }
+
+  /* ── Decision matrix ── */
+  .dm-table td:last-child { font-weight:600; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top:1px solid #e5e7eb;
+    padding:18px 40px;
+    text-align:center;
+    font-size:12px;
+    color:#94a3b8;
+  }
+
+  @media (max-width:640px){
+    .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    .two-col { grid-template-columns:1fr; }
+    .forecast-grid { grid-template-columns:repeat(2,1fr); }
+    .pipeline { flex-direction:column; }
+    .pl-step { border-right:none; border-bottom:1px solid #e5e7eb; }
+    .bar-label { width:90px; }
+    .body { padding:24px 20px; }
+    .header { padding:24px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  
+  <div class="header">
+    <div class="badge">Project Report</div>
+    <h1>🛒 E-Commerce Sales &amp; Customer Analytics with AI</h1>
+    <p>End-to-end Python data analytics pipeline — from raw data to AI-powered sales forecasting and Streamlit dashboard.</p>
+    <div class="meta">
+      <span><strong>Dataset</strong> 5,010 synthetic orders</span>
+      <span><strong>Period</strong> 2 years of historical data</span>
+      <span><strong>Categories</strong> 8 product categories</span>
+      <span><strong>Models</strong> Random Forest · Gradient Boosting · Linear Regression</span>
+      <span><strong>Stack</strong> Python · Pandas · Scikit-Learn · Plotly · Streamlit</span>
+    </div>
+  </div>
+
+  <div class="body">
+
+    
+    <div class="section-title">1 — Project Architecture</div>
+    <div class="pipeline">
+      <div class="pl-step">
+        <span class="icon">⚙️</span>
+        <div class="name">data_generator.py</div>
+        <div class="desc">Synthetic dataset with injected quality issues</div>
+      </div>
+      <div class="pl-step">
+        <span class="icon">🧹</span>
+        <div class="name">data_cleaner.py</div>
+        <div class="desc">Cleaning, imputation &amp; feature engineering</div>
+      </div>
+      <div class="pl-step">
+        <span class="icon">📊</span>
+        <div class="name">analytics.py</div>
+        <div class="desc">KPIs, aggregations, RFM segmentation</div>
+      </div>
+      <div class="pl-step">
+        <span class="icon">🤖</span>
+        <div class="name">predictor.py</div>
+        <div class="desc">ML model training &amp; revenue forecast</div>
+      </div>
+      <div class="pl-step">
+        <span class="icon">📈</span>
+        <div class="name">charts.py</div>
+        <div class="desc">20 Plotly chart builders</div>
+      </div>
+      <div class="pl-step">
+        <span class="icon">🖥️</span>
+        <div class="name">app.py</div>
+        <div class="desc">7-page Streamlit dashboard</div>
+      </div>
+    </div>
+
+    
+    <div class="section-title">2 — Data Quality &amp; Cleaning</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="val">5,010</div>
+        <div class="lbl">Raw Rows</div>
+      </div>
+      <div class="kpi">
+        <div class="val">4,959</div>
+        <div class="lbl">Cleaned Rows</div>
+      </div>
+      <div class="kpi">
+        <div class="val neg">51</div>
+        <div class="lbl">Rows Removed</div>
+      </div>
+      <div class="kpi">
+        <div class="val pos">99.0%</div>
+        <div class="lbl">Data Retained</div>
+      </div>
+    </div>
+    <br />
+    <div class="kpi-grid col3">
+      <div class="kpi">
+        <div class="val warn">1,192</div>
+        <div class="lbl">Missing Cells (raw)</div>
+      </div>
+      <div class="kpi">
+        <div class="val pos">925</div>
+        <div class="lbl">After Imputation</div>
+      </div>
+      <div class="kpi">
+        <div class="val warn">9</div>
+        <div class="lbl">Duplicates Found &amp; Removed</div>
+      </div>
+    </div>
+
+    <br />
+    <p style="font-size:13px;font-weight:600;color:#475569;margin-bottom:8px">Cleaning Steps Applied</p>
+    <ul class="step-list">
+      <li><div class="step-dot">1</div><div><strong>Duplicate Removal</strong> — exact duplicate rows removed</div><span class="rows">9 rows</span></li>
+      <li><div class="step-dot">2</div><div><strong>Future Date Removal</strong> — orders with order_date in the future removed</div><span class="rows">8 rows</span></li>
+      <li><div class="step-dot">3</div><div><strong>Negative Revenue</strong> — data-entry errors (revenue ≤ 0) removed</div><span class="rows">20 rows</span></li>
+      <li><div class="step-dot">4</div><div><strong>Zero Quantity</strong> — orders with quantity = 0 removed</div><span class="rows">14 rows</span></li>
+      <li><div class="step-dot">5</div><div><strong>Age Imputation</strong> — missing customer_age filled with median (44)</div><span class="rows">149 cells</span></li>
+      <li><div class="step-dot">6</div><div><strong>Region Imputation</strong> — missing region filled with mode ('West')</div><span class="rows">100 cells</span></li>
+      <li><div class="step-dot">7</div><div><strong>Rating NaN Kept</strong> — 925 missing ratings retained (customers who didn't rate — valid)</div><span class="rows">0 removed</span></li>
+    </ul>
+    <div class="insight">After cleaning, <strong>24 feature columns</strong> are available including 9 engineered fields: year, month, quarter, year_month, day_of_week, month_name, age_group, is_returned, is_cancelled.</div>
+
+    
+    <div class="section-title">3 — Headline Business KPIs</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="val">$454,959</div>
+        <div class="lbl">Total Revenue</div>
+        <div class="delta pos">↑ +16.1% avg MoM growth</div>
+      </div>
+      <div class="kpi">
+        <div class="val">$355,420</div>
+        <div class="lbl">Completed Revenue</div>
+        <div class="delta pos">78.1% completion rate</div>
+      </div>
+      <div class="kpi">
+        <div class="val">$91.58</div>
+        <div class="lbl">Avg Order Value</div>
+        <div class="delta" style="color:#64748b">Median: $55.57</div>
+      </div>
+      <div class="kpi">
+        <div class="val">4,959</div>
+        <div class="lbl">Total Orders</div>
+        <div class="delta" style="color:#64748b">3,881 completed</div>
+      </div>
+    </div>
+    <br />
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="val">997</div>
+        <div class="lbl">Unique Customers</div>
+        <div class="delta" style="color:#64748b">4.97 orders / customer</div>
+      </div>
+      <div class="kpi">
+        <div class="val">6,494</div>
+        <div class="lbl">Units Sold</div>
+      </div>
+      <div class="kpi">
+        <div class="val warn">8.17%</div>
+        <div class="lbl">Return Rate</div>
+        <div class="delta warn">⚠ Slightly above 8% target</div>
+      </div>
+      <div class="kpi">
+        <div class="val">⭐ 2.99</div>
+        <div class="lbl">Avg Customer Rating</div>
+        <div class="delta warn">Below 3.5 — needs attention</div>
+      </div>
+    </div>
+
+    
+    <div class="section-title">4 — Sales Analysis</div>
+    <div class="two-col">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">Revenue by Category</p>
+        <div class="bar-row"><span class="bar-label">Electronics</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#3b82f6"></div></div><span class="bar-pct">22.8%</span></div>
+        <div class="bar-row"><span class="bar-label">Home &amp; Kitchen</span><div class="bar-track"><div class="bar-fill" style="width:85%;background:#6366f1"></div></div><span class="bar-pct">19.5%</span></div>
+        <div class="bar-row"><span class="bar-label">Clothing</span><div class="bar-track"><div class="bar-fill" style="width:69%;background:#8b5cf6"></div></div><span class="bar-pct">15.8%</span></div>
+        <div class="bar-row"><span class="bar-label">Automotive</span><div class="bar-track"><div class="bar-fill" style="width:46%;background:#ec4899"></div></div><span class="bar-pct">10.5%</span></div>
+        <div class="bar-row"><span class="bar-label">Beauty</span><div class="bar-track"><div class="bar-fill" style="width:44%;background:#f59e0b"></div></div><span class="bar-pct">10.1%</span></div>
+        <div class="bar-row"><span class="bar-label">Toys</span><div class="bar-track"><div class="bar-fill" style="width:40%;background:#10b981"></div></div><span class="bar-pct">9.1%</span></div>
+        <div class="bar-row"><span class="bar-label">Books</span><div class="bar-track"><div class="bar-fill" style="width:27%;background:#14b8a6"></div></div><span class="bar-pct">6.3%</span></div>
+        <div class="bar-row"><span class="bar-label">Sports</span><div class="bar-track"><div class="bar-fill" style="width:26%;background:#64748b"></div></div><span class="bar-pct">5.9%</span></div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">Revenue by Region</p>
+        <div class="bar-row"><span class="bar-label">West</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#3b82f6"></div></div><span class="bar-pct">21.5%</span></div>
+        <div class="bar-row"><span class="bar-label">South</span><div class="bar-track"><div class="bar-fill" style="width:97%;background:#6366f1"></div></div><span class="bar-pct">20.9%</span></div>
+        <div class="bar-row"><span class="bar-label">North</span><div class="bar-track"><div class="bar-fill" style="width:90%;background:#8b5cf6"></div></div><span class="bar-pct">19.5%</span></div>
+        <div class="bar-row"><span class="bar-label">Central</span><div class="bar-track"><div class="bar-fill" style="width:89%;background:#ec4899"></div></div><span class="bar-pct">19.1%</span></div>
+        <div class="bar-row"><span class="bar-label">East</span><div class="bar-track"><div class="bar-fill" style="width:88%;background:#10b981"></div></div><span class="bar-pct">19.0%</span></div>
+        <br />
+        <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">Revenue by Channel</p>
+        <div class="bar-row"><span class="bar-label">Website</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#3b82f6"></div></div><span class="bar-pct">39.5%</span></div>
+        <div class="bar-row"><span class="bar-label">Mobile App</span><div class="bar-track"><div class="bar-fill" style="width:83%;background:#6366f1"></div></div><span class="bar-pct">32.8%</span></div>
+        <div class="bar-row"><span class="bar-label">Marketplace</span><div class="bar-track"><div class="bar-fill" style="width:48%;background:#8b5cf6"></div></div><span class="bar-pct">19.1%</span></div>
+        <div class="bar-row"><span class="bar-label">In-Store</span><div class="bar-track"><div class="bar-fill" style="width:22%;background:#64748b"></div></div><span class="bar-pct">8.6%</span></div>
+      </div>
+    </div>
+
+    
+    <div class="section-title">5 — Discount Impact Analysis</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Discount Band</th>
+          <th>Orders</th>
+          <th>Avg Order Value</th>
+          <th>Revenue Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="tag tag-green">0%</span></td><td>1,157</td><td><strong>$99.12</strong></td><td class="pos">Highest AOV</td></tr>
+        <tr><td><span class="tag tag-blue">1–5%</span></td><td>807</td><td>$96.92</td><td>Minimal impact</td></tr>
+        <tr><td><span class="tag tag-blue">6–10%</span></td><td>753</td><td>$94.03</td><td>Slight drop</td></tr>
+        <tr><td><span class="tag tag-yellow">11–15%</span></td><td>572</td><td>$86.77</td><td class="warn">Noticeable decline</td></tr>
+        <tr><td><span class="tag tag-yellow">16–20%</span></td><td>385</td><td>$72.62</td><td class="warn">Significant decline</td></tr>
+        <tr><td><span class="tag tag-red">&gt;20%</span></td><td>207</td><td>$68.25</td><td class="neg">Lowest AOV</td></tr>
+      </tbody>
+    </table>
+    <div class="warning">Discounts above 10% cause a steep drop in average order value. Deep discounts (&gt;20%) should be limited to clearance campaigns only.</div>
+
+    
+    <div class="section-title">6 — Returns &amp; Order Status</div>
+    <div class="two-col">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">Top Return Rates by Category</p>
+        <table>
+          <thead><tr><th>Category</th><th>Return Rate</th></tr></thead>
+          <tbody>
+            <tr><td>Automotive</td><td class="neg">10.54%</td></tr>
+            <tr><td>Sports</td><td class="warn">9.18%</td></tr>
+            <tr><td>Home &amp; Kitchen</td><td class="warn">8.33%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">Order Status Distribution</p>
+        <table>
+          <thead><tr><th>Status</th><th>Share</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-green">Completed</span></td><td class="pos">~78%</td></tr>
+            <tr><td><span class="tag tag-yellow">Returned</span></td><td class="warn">~8%</td></tr>
+            <tr><td><span class="tag tag-red">Cancelled</span></td><td class="warn">~8%</td></tr>
+            <tr><td><span class="tag tag-blue">Pending</span></td><td>~6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    
+    <div class="section-title">7 — Customer Analytics &amp; RFM Segmentation</div>
+    <div class="kpi-grid col3">
+      <div class="kpi">
+        <div class="val">997</div>
+        <div class="lbl">Unique Customers</div>
+      </div>
+      <div class="kpi">
+        <div class="val">4.97</div>
+        <div class="lbl">Avg Orders / Customer</div>
+      </div>
+      <div class="kpi">
+        <div class="val">$91.58</div>
+        <div class="lbl">Avg Lifetime Order Value</div>
+      </div>
+    </div>
+    <br />
+    <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">RFM Customer Segments</p>
+    <div class="bar-row"><span class="bar-label">At-Risk</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#ef4444"></div></div><span class="bar-pct">272</span></div>
+    <div class="bar-row"><span class="bar-label">Need Attention</span><div class="bar-track"><div class="bar-fill" style="width:99%;background:#f59e0b"></div></div><span class="bar-pct">269</span></div>
+    <div class="bar-row"><span class="bar-label">Loyal</span><div class="bar-track"><div class="bar-fill" style="width:99%;background:#3b82f6"></div></div><span class="bar-pct">268</span></div>
+    <div class="bar-row"><span class="bar-label">Champions</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#10b981"></div></div><span class="bar-pct">176</span></div>
+    <div class="insight">176 Champions drive disproportionate revenue. A loyalty programme with exclusive perks can convert "Loyal" customers into Champions.</div>
+    <div class="warning">272 At-Risk customers have not purchased recently. A targeted re-engagement email campaign with personalised incentives is recommended immediately.</div>
+
+    
+    <div class="section-title">8 — AI Sales Prediction</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:14px">Three ML models were trained on 25 months of historical monthly revenue using lag features, rolling statistics, and calendar encodings. Evaluated with TimeSeriesSplit (3-fold) cross-validation.</p>
+
+    <table>
+      <thead>
+        <tr><th>Model</th><th>MAE</th><th>RMSE</th><th>R²</th><th>CV RMSE (mean)</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr class="best-row">
+          <td>🏆 Random Forest</td><td>$1,215</td><td>$1,573</td><td>0.358</td><td>$3,998</td>
+          <td><span class="tag tag-green">Best Model</span></td>
+        </tr>
+        <tr>
+          <td>Gradient Boosting</td><td>$1,463</td><td>$1,732</td><td>0.221</td><td>$3,301</td>
+          <td><span class="tag tag-blue">Runner-up</span></td>
+        </tr>
+        <tr>
+          <td>Linear Regression</td><td>$3,301</td><td>$3,692</td><td>−2.54</td><td>$17,690</td>
+          <td><span class="tag tag-yellow">Baseline</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <br />
+    <p style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px">6-Month Revenue Forecast (Random Forest)</p>
+    <div class="forecast-grid">
+      <div class="fc-card">
+        <div class="month">October 2026</div>
+        <div class="amount">$15,536</div>
+      </div>
+      <div class="fc-card peak">
+        <div class="month">November 2026</div>
+        <div class="amount">$17,939</div>
+      </div>
+      <div class="fc-card peak">
+        <div class="month">December 2026</div>
+        <div class="amount">$19,780</div>
+      </div>
+      <div class="fc-card">
+        <div class="month">January 2027</div>
+        <div class="amount">$13,170</div>
+      </div>
+      <div class="fc-card">
+        <div class="month">February 2027</div>
+        <div class="amount">$11,559</div>
+      </div>
+      <div class="fc-card">
+        <div class="month">March 2027</div>
+        <div class="amount">$13,439</div>
+      </div>
+    </div>
+    <div class="insight">Total forecast for the next 6 months: <strong>$91,423</strong>. Q4 2026 (Nov–Dec) is projected to be the strongest period — plan inventory and staffing well in advance.</div>
+
+    
+    <div class="section-title">9 — Business Decisions &amp; Recommendations</div>
+    <table class="dm-table">
+      <thead><tr><th>Area</th><th>Finding</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>📦 Top Category</td>
+          <td>Electronics — 22.8% of revenue</td>
+          <td><span class="tag tag-green">🚀 Scale Up</span></td>
+        </tr>
+        <tr>
+          <td>📦 Low Category</td>
+          <td>Sports — only 5.9% of revenue</td>
+          <td><span class="tag tag-yellow">⚠️ Review assortment &amp; pricing</span></td>
+        </tr>
+        <tr>
+          <td>🗺️ Top Region</td>
+          <td>West — 21.5% share</td>
+          <td><span class="tag tag-green">Invest in logistics</span></td>
+        </tr>
+        <tr>
+          <td>📱 Top Channel</td>
+          <td>Website — 39.5% of revenue</td>
+          <td><span class="tag tag-green">Improve UX &amp; SEO</span></td>
+        </tr>
+        <tr>
+          <td>💸 Discounts</td>
+          <td>Discounts &gt;10% erode AOV significantly</td>
+          <td><span class="tag tag-yellow">Cap promotions at 10%</span></td>
+        </tr>
+        <tr>
+          <td>🔁 Returns</td>
+          <td>Automotive return rate 10.54%</td>
+          <td><span class="tag tag-red">Fix product descriptions</span></td>
+        </tr>
+        <tr>
+          <td>⭐ Ratings</td>
+          <td>Avg rating 2.99 / 5</td>
+          <td><span class="tag tag-red">Quality &amp; support review</span></td>
+        </tr>
+        <tr>
+          <td>👥 Customers</td>
+          <td>272 At-Risk, 176 Champions</td>
+          <td><span class="tag tag-purple">Launch loyalty programme</span></td>
+        </tr>
+        <tr>
+          <td>🤖 AI Forecast</td>
+          <td>Q4 2026 peak at $19,780 (Dec)</td>
+          <td><span class="tag tag-green">Pre-build inventory by Oct</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    
+    <div class="section-title">10 — Technology Stack</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="val" style="font-size:1rem">Pandas / NumPy</div>
+        <div class="lbl">Data wrangling &amp; feature engineering</div>
+      </div>
+      <div class="kpi">
+        <div class="val" style="font-size:1rem">Scikit-Learn</div>
+        <div class="lbl">ML models, pipelines, TimeSeriesSplit CV</div>
+      </div>
+      <div class="kpi">
+        <div class="val" style="font-size:1rem">Plotly</div>
+        <div class="lbl">20 interactive chart types</div>
+      </div>
+      <div class="kpi">
+        <div class="val" style="font-size:1rem">Streamlit</div>
+        <div class="lbl">7-page interactive dashboard</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Made with IBM Bob  ·  E-Commerce Sales &amp; Customer Analytics with AI
+  </div>
+
+</div>
+</body>
+</html>
